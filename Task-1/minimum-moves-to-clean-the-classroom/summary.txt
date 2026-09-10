@@ -1,2 +1,1 @@
-Your summary for program in ../../resource/correctJavaPrograms/minimum-moves-to-clean-the-classroom/Solution.java
-Example: The function `minimumMoves` calculates the minimum number of moves required to clean ... [It should be a human-readable, informative, descriptive, natural language description of the function of the program.]
+Grid: S start, L litter, R refill, X wall, . floor; steps cost 1 energy. BFS (x,y,energy,mask) with max-energy pruning; min steps to collect all L, else -1.
