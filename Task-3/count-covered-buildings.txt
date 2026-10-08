@@ -1,11 +1,92 @@
-Bug Description: ...Briefly describe the wrong logic and the reason why it is wrong...
+Bug Description: HORIZONTAL is declared as 0x03, which already contains the VERTICAL bit 0x01. The final check compares surrounded against (VERTICAL | HORIZONTAL) == 0x03, so a building that is only strictly inside a same-row (horizontal) run ends up with surrounded == 0x03 and is counted as covered even though it has no building above or below it. All three sample cases happen to pass, so the fault only shows up on a row (or column) of buildings: for n = 3, buildings = [[1,1],[2,1],[3,1]] the program reports 1 instead of 0, and for a row of five it reports 3 instead of 0.
 
-Bug Location: Line xxx, or missing a code between lines yyy and zzz, or line xxx is redundant.
+Bug Location: Line 6.
 
 Suggested Patch:
-- xxxxx code
-+ yyyyy code
-(Brief explanation of the changes made)
+-     private static final int VERTICAL = 0x01, HORIZONTAL = 0x03;
++     private static final int VERTICAL = 0x01, HORIZONTAL = 0x02;
 
 Fixed Version:
-(Put down the whole fixed program.)
+import java.util.Arrays;
+import java.util.Comparator;
+
+class Solution {
+
+    private static final int VERTICAL = 0x01, HORIZONTAL = 0x02;
+
+    private static final class Site {
+        final int x;
+        final int y;
+        int surrounded;
+
+        Site(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    public int countCoveredBuildings(int n, int[][] buildings) {
+        Site[] sites = new Site[buildings.length];
+
+        for (int i = 0; i < buildings.length; i++) {
+            sites[i] = new Site(buildings[i][0], buildings[i][1]);
+        }
+
+        // In a same-x run sorted by y, every non-endpoint building
+        // has another building both above and below it.
+        Arrays.sort(
+            sites,
+            Comparator.comparingInt((Site s) -> s.x)
+                      .thenComparingInt(s -> s.y)
+        );
+        markInteriorOfRuns(sites, true, VERTICAL);
+
+        // In a same-y run sorted by x, every non-endpoint building
+        // has another building both left and right of it.
+        Arrays.sort(
+            sites,
+            Comparator.comparingInt((Site s) -> s.y)
+                      .thenComparingInt(s -> s.x)
+        );
+        markInteriorOfRuns(sites, false, HORIZONTAL);
+
+        int covered = 0;
+        for (Site site : sites) {
+            if (site.surrounded == (VERTICAL | HORIZONTAL)) {
+                covered++;
+            }
+        }
+        return covered;
+    }
+
+    private void markInteriorOfRuns(
+        Site[] sites,
+        boolean groupByX,
+        int directionFlag
+    ) {
+        int first = 0;
+
+        while (first < sites.length) {
+            int key = groupByX ? sites[first].x : sites[first].y;
+            int afterLast = first + 1;
+
+            while (afterLast < sites.length) {
+                int nextKey = groupByX
+                    ? sites[afterLast].x
+                    : sites[afterLast].y;
+
+                if (nextKey != key) {
+                    break;
+                }
+                afterLast++;
+            }
+
+            // first and afterLast - 1 are extrema of this row/column.
+            for (int i = first + 1; i < afterLast - 1; i++) {
+                sites[i].surrounded |= directionFlag;
+            }
+
+            first = afterLast;
+        }
+    }
+}

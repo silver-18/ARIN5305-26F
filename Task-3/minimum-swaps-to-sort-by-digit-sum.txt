@@ -1,11 +1,85 @@
-Bug Description: ...Briefly describe the wrong logic and the reason why it is wrong...
+Bug Description: After swapping, the value that was moved out of the current slot is registered with the wrong new position. current[source] = displaced puts that value at index source, but the next line stores location.put(displaced, slot) instead of location.put(displaced, source). The map therefore points at a stale index for that value; as soon as the value is needed again, source = location.get(wanted) returns the wrong slot, the value is written into a position that has already been fixed, and an extra swap is counted. Example: nums = [2,3,1] is a single 3-cycle that needs 2 swaps, but the program returns 3. The three sample cases do not trigger it because their permutation structure never reads back a wrongly recorded position.
 
-Bug Location: Line xxx, or missing a code between lines yyy and zzz, or line xxx is redundant.
+Bug Location: Line 58.
 
 Suggested Patch:
-- xxxxx code
-+ yyyyy code
-(Brief explanation of the changes made)
+-             location.put(displaced, slot);
++             location.put(displaced, source);
 
 Fixed Version:
-(Put down the whole fixed program.)
+import java.util.*;
+
+class Solution {
+
+    private static final class RankedNumber {
+        final int value;
+        final int digitWeight;
+
+        RankedNumber(int value) {
+            this.value = value;
+            this.digitWeight = digitWeightOf(value);
+        }
+    }
+
+    public int minSwaps(int[] nums) {
+        int n = nums.length;
+
+        // Build the required final ordering independently of the input positions.
+        RankedNumber[] targetOrder = new RankedNumber[n];
+        for (int i = 0; i < n; i++) {
+            targetOrder[i] = new RankedNumber(nums[i]);
+        }
+
+        Arrays.sort(targetOrder, (x, y) -> {
+            int byDigitWeight = Integer.compare(x.digitWeight, y.digitWeight);
+            if (byDigitWeight != 0) {
+                return byDigitWeight;
+            }
+            return Integer.compare(x.value, y.value);
+        });
+
+        // Work on a private copy while tracking where every distinct value is.
+        int[] current = nums.clone();
+        Map<Integer, Integer> location = new HashMap<>(n * 2);
+
+        for (int i = 0; i < n; i++) {
+            location.put(current[i], i);
+        }
+
+        int swapCount = 0;
+
+        // Fix positions from left to right. Whenever a position is wrong,
+        // bring its required value directly from its current position.
+        for (int slot = 0; slot < n; slot++) {
+            int wanted = targetOrder[slot].value;
+
+            if (current[slot] == wanted) {
+                continue;
+            }
+
+            int source = location.get(wanted);
+            int displaced = current[slot];
+
+            current[slot] = wanted;
+            current[source] = displaced;
+
+            location.put(wanted, slot);
+            location.put(displaced, source);
+
+            swapCount++;
+        }
+
+        return swapCount;
+    }
+
+    private static int digitWeightOf(int value) {
+        int total = 0;
+
+        while (value != 0) {
+            total += value % 10;
+            value /= 10;
+        }
+
+        return total;
+    }
+}
