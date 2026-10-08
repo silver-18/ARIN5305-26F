@@ -1,0 +1,23 @@
+START CLASSLITERALS
+CLASSNAME
+Solution
+LITERALS
+String:"SL"
+String:"LS"
+String:"SR"
+String:"RS"
+String:"RL"
+String:"LR"
+String:".X"
+String:"XL"
+String:"LX"
+String:"LL"
+String:"RR"
+String:"SS"
+String:".."
+String:"S."
+String:".S"
+int:2
+int:3
+int:4
+END CLASSLITERALS

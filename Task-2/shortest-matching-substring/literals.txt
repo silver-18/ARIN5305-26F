@@ -1,0 +1,14 @@
+START CLASSLITERALS
+CLASSNAME
+Solution
+LITERALS
+char:2a
+String:"a*b*c"
+String:"*a*b*"
+String:"a*a*a"
+String:"a*b*"
+String:"*a*b"
+String:"b*a*c"
+String:"x*y*z"
+String:"a*b*c*d"
+END CLASSLITERALS
